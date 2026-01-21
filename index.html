@@ -3,490 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Voice Agent Demo</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    
+    <title>AI Assistant Demo</title>
     <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/vapi.min.js"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0a0b;
-            --bg-secondary: #111113;
-            --bg-tertiary: #18181b;
-            --accent: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.4);
-            --text-primary: #fafafa;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --border: #27272a;
-            --success: #22c55e;
-            --warning: #eab308;
-            --error: #ef4444;
+            --primary: #2563eb;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --subtext: #94a3b8;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
-            position: relative;
-            overflow-x: hidden;
+            height: 100vh;
+            margin: 0;
         }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
-            animation: pulse 8s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-        }
-
-        .container { max-width: 480px; width: 100%; position: relative; z-index: 1; }
-
-        .header { text-align: center; margin-bottom: 3rem; }
-        .logo {
-            font-family: 'Instrument Serif', serif;
-            font-size: 1.5rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-        .title {
-            font-family: 'Instrument Serif', serif;
-            font-size: 2.5rem;
-            font-weight: 400;
-            line-height: 1.1;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.03em;
-        }
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
+        .container {
+            background-color: var(--card);
+            padding: 40px;
             border-radius: 24px;
-            padding: 2.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-        }
-
-        .status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            padding: 0.5rem 1rem;
-            background: var(--bg-tertiary);
-            border-radius: 100px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .status-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--text-muted);
-            transition: all 0.3s ease;
-        }
-        .status-dot.ready { background: var(--success); box-shadow: 0 0 12px var(--success); }
-        .status-dot.connecting { background: var(--warning); animation: blink 1s ease-in-out infinite; }
-        .status-dot.active { background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: pulse-dot 1.5s ease-in-out infinite; }
-        .status-dot.error { background: var(--error); }
-
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        @keyframes pulse-dot { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
-
-        .status-text { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; }
-
-        .voice-button-container { display: flex; justify-content: center; margin-bottom: 2rem; }
-
-        .voice-button {
-            width: 140px; height: 140px;
-            border-radius: 50%;
-            border: none;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .voice-button:hover { transform: scale(1.05); box-shadow: 0 0 60px var(--accent-glow); }
-        .voice-button:active { transform: scale(0.98); }
-        .voice-button.active { animation: glow 2s ease-in-out infinite; }
-        .voice-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 40px var(--accent-glow); }
-            50% { box-shadow: 0 0 80px var(--accent-glow), 0 0 120px rgba(139, 92, 246, 0.3); }
-        }
-
-        .voice-button::before, .voice-button::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            border: 2px solid var(--accent);
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0;
-            pointer-events: none;
-        }
-        .voice-button.active::before { animation: ripple 2s ease-out infinite; }
-        .voice-button.active::after { animation: ripple 2s ease-out infinite 1s; }
-
-        @keyframes ripple {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-        }
-
-        .voice-icon { width: 48px; height: 48px; color: white; }
-
-        .visualizer { display: flex; align-items: center; justify-content: center; gap: 4px; height: 48px; }
-        .visualizer-bar { width: 4px; background: white; border-radius: 2px; animation: none; }
-        .voice-button.active .visualizer-bar { animation: wave 0.8s ease-in-out infinite; }
-        .visualizer-bar:nth-child(1) { height: 16px; animation-delay: 0s; }
-        .visualizer-bar:nth-child(2) { height: 24px; animation-delay: 0.1s; }
-        .visualizer-bar:nth-child(3) { height: 32px; animation-delay: 0.2s; }
-        .visualizer-bar:nth-child(4) { height: 24px; animation-delay: 0.3s; }
-        .visualizer-bar:nth-child(5) { height: 16px; animation-delay: 0.4s; }
-
-        @keyframes wave { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.8); } }
-
-        .transcript {
-            background: var(--bg-tertiary);
-            border-radius: 16px;
-            padding: 1.25rem;
-            min-height: 120px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .transcript-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-        }
-        .transcript-content {
-            font-size: 0.9375rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-        }
-        .transcript-content:empty::before {
-            content: 'Conversation will appear here...';
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        .transcript-message {
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .transcript-message:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        .transcript-role {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-        }
-        .transcript-role.user { color: var(--accent); }
-        .transcript-role.assistant { color: var(--success); }
-        .transcript-role.system { color: var(--text-muted); }
-
-        .footer { text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 0.875rem; }
-        .footer a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
-        .footer a:hover { color: var(--accent); }
-
-        .transcript::-webkit-scrollbar { width: 6px; }
-        .transcript::-webkit-scrollbar-track { background: transparent; }
-        .transcript::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-        .error-banner {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--error);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
             text-align: center;
-            color: var(--error);
-            font-size: 0.875rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        h1 { margin: 0 0 10px 0; font-size: 24px; }
+        p { color: var(--subtext); margin-bottom: 30px; }
+        
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+        }
+        .mic-button svg { width: 32px; height: 32px; fill: white; }
+        
+        /* Active State Animation */
+        .mic-button.active {
+            background-color: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        @media (max-width: 480px) {
-            body { padding: 1rem; }
-            .title { font-size: 2rem; }
-            .card { padding: 1.5rem; }
-            .voice-button { width: 120px; height: 120px; }
-        }
+        .status { margin-top: 20px; font-size: 14px; color: var(--subtext); }
+        
+        /* Hide if config missing */
+        .error { color: #ef4444; display: none; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <p class="logo" id="companyName">Your Company</p>
-            <h1 class="title" id="agentTitle">Voice AI Assistant</h1>
-            <p class="subtitle" id="agentSubtitle">Click the button below to start a conversation with your AI assistant.</p>
-        </header>
 
-        <main class="card">
-            <div class="error-banner" id="errorBanner" style="display: none;"></div>
-            
-            <div class="status">
-                <span class="status-dot" id="statusDot"></span>
-                <span class="status-text" id="statusText">Loading...</span>
-            </div>
+<div class="container">
+    <div id="error-msg" class="error"></div>
+    <h1 id="agent-name">Voice Assistant</h1>
+    <p>Tap below to start the conversation</p>
 
-            <div class="voice-button-container">
-                <button class="voice-button" id="voiceButton" disabled>
-                    <div class="visualizer" id="visualizer" style="display: none;">
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                    </div>
-                    <svg class="voice-icon" id="voiceIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                        <line x1="12" x2="12" y1="19" y2="22"/>
-                    </svg>
-                </button>
-            </div>
+    <button id="vapi-btn" class="mic-button">
+        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+    </button>
 
-            <div class="transcript">
-                <p class="transcript-label">Transcript</p>
-                <div class="transcript-content" id="transcript"></div>
-            </div>
-        </main>
+    <div class="status" id="status-text">Ready to connect</div>
+</div>
 
-        <footer class="footer">
-            <p>Powered by <a href="https://vapi.ai" target="_blank">VAPI</a></p>
-        </footer>
-    </div>
+<script>
+    // 1. Get Params from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const publicKey = urlParams.get('key'); // Your Public Key
+    const assistantId = urlParams.get('id');  // The Agent ID from n8n
+    const agentName = urlParams.get('name') || "Voice Assistant";
 
-    <script>
-        // ============================================
-        // URL PARAMETER CONFIGURATION
-        // ============================================
-        
-        const params = new URLSearchParams(window.location.search);
-        
-        const CONFIG = {
-            publicKey: params.get('key') || '',
-            assistantId: params.get('assistant') || params.get('id') || '',
-            company: params.get('company') || 'Your Company',
-            title: params.get('title') || 'Voice AI Assistant',
-            subtitle: params.get('subtitle') || 'Click the button below to start a conversation with your AI assistant.',
-        };
+    // 2. Setup UI
+    document.getElementById('agent-name').innerText = agentName;
+    const btn = document.getElementById('vapi-btn');
+    const statusText = document.getElementById('status-text');
+    const errorMsg = document.getElementById('error-msg');
 
-        // DOM Elements
-        const voiceButton = document.getElementById('voiceButton');
-        const voiceIcon = document.getElementById('voiceIcon');
-        const visualizer = document.getElementById('visualizer');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const transcript = document.getElementById('transcript');
-        const errorBanner = document.getElementById('errorBanner');
+    if (!publicKey || !assistantId) {
+        errorMsg.innerText = "Missing API Key or Assistant ID in URL";
+        errorMsg.style.display = "block";
+        btn.disabled = true;
+    }
 
-        // Update page content from params
-        document.getElementById('companyName').textContent = CONFIG.company;
-        document.getElementById('agentTitle').textContent = CONFIG.title;
-        document.getElementById('agentSubtitle').textContent = CONFIG.subtitle;
-        document.title = `${CONFIG.title} - ${CONFIG.company}`;
+    // 3. Initialize Vapi
+    const vapi = new Vapi(publicKey);
+    let isActive = false;
 
-        // State
-        let isCallActive = false;
-        let vapi = null;
-
-        function showError(message) {
-            errorBanner.textContent = message;
-            errorBanner.style.display = 'block';
-            updateUI('error', message);
+    btn.addEventListener('click', () => {
+        if (!isActive) {
+            vapi.start(assistantId);
+            statusText.innerText = "Connecting...";
+        } else {
+            vapi.stop();
         }
+    });
 
-        function updateUI(state, message = '') {
-            statusDot.className = 'status-dot ' + state;
-            
-            // Logic for button state
-            if (state === 'error' || state === 'connecting') {
-                voiceButton.disabled = true;
-            } else {
-                voiceButton.disabled = false;
-            }
-            
-            switch (state) {
-                case 'ready':
-                    statusText.textContent = 'Ready to talk';
-                    voiceButton.classList.remove('active');
-                    voiceIcon.style.display = 'block';
-                    visualizer.style.display = 'none';
-                    break;
-                case 'connecting':
-                    statusText.textContent = 'Connecting...';
-                    break;
-                case 'active':
-                    statusText.textContent = 'Listening...';
-                    voiceButton.classList.add('active');
-                    voiceIcon.style.display = 'none';
-                    visualizer.style.display = 'flex';
-                    break;
-                case 'error':
-                    statusText.textContent = message || 'Error';
-                    voiceButton.classList.remove('active');
-                    voiceIcon.style.display = 'block';
-                    visualizer.style.display = 'none';
-                    break;
-            }
-        }
+    // 4. Handle Events
+    vapi.on('call-start', () => {
+        isActive = true;
+        btn.classList.add('active');
+        statusText.innerText = "Listening...";
+    });
 
-        function addToTranscript(role, text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'transcript-message';
-            
-            const roleLabel = document.createElement('p');
-            roleLabel.className = 'transcript-role ' + role;
-            roleLabel.textContent = role === 'user' ? 'You' : role === 'assistant' ? 'AI' : 'System';
-            
-            const textP = document.createElement('p');
-            textP.textContent = text;
-            
-            messageDiv.appendChild(roleLabel);
-            messageDiv.appendChild(textP);
-            transcript.appendChild(messageDiv);
-            transcript.scrollTop = transcript.scrollHeight;
-        }
+    vapi.on('call-end', () => {
+        isActive = false;
+        btn.classList.remove('active');
+        statusText.innerText = "Call ended";
+        setTimeout(() => statusText.innerText = "Ready to connect", 2000);
+    });
 
-        // 3. SIMPLIFIED INIT LOGIC (Removed Import)
-        function initVapi() {
-            // Validate config
-            if (!CONFIG.assistantId) {
-                showError('Missing assistant ID.');
-                return;
-            }
-            
-            if (!CONFIG.publicKey) {
-                showError('Missing VAPI public key.');
-                return;
-            }
+    vapi.on('error', (e) => {
+        console.error(e);
+        statusText.innerText = "Connection Error";
+        isActive = false;
+        btn.classList.remove('active');
+    });
+</script>
 
-            try {
-                // Initialize Vapi directly from the global variable
-                // The script in <head> provides the 'Vapi' class
-                vapi = new Vapi(CONFIG.publicKey);
-                
-                // Event listeners
-                vapi.on('call-start', () => {
-                    console.log('Call started');
-                    isCallActive = true;
-                    updateUI('active');
-                    addToTranscript('system', 'Connected');
-                });
-
-                vapi.on('call-end', () => {
-                    console.log('Call ended');
-                    isCallActive = false;
-                    updateUI('ready');
-                    addToTranscript('system', 'Call ended');
-                });
-
-                vapi.on('speech-start', () => {
-                    console.log('Assistant speaking');
-                });
-
-                vapi.on('speech-end', () => {
-                    console.log('Assistant stopped speaking');
-                });
-
-                vapi.on('message', (message) => {
-                    if (message.type === 'transcript' && message.transcriptType === 'final') {
-                        addToTranscript(message.role, message.transcript);
-                    }
-                });
-
-                vapi.on('error', (error) => {
-                    console.error('VAPI Error:', error);
-                    updateUI('error', 'Connection error');
-                    isCallActive = false;
-                });
-
-                updateUI('ready');
-                console.log('VAPI initialized successfully');
-                
-            } catch (error) {
-                console.error('Failed to initialize VAPI:', error);
-                showError('Failed to load voice system: ' + error.message);
-            }
-        }
-
-        async function toggleCall() {
-            if (!vapi) return;
-
-            if (isCallActive) {
-                vapi.stop();
-            } else {
-                updateUI('connecting');
-                transcript.innerHTML = '';
-                
-                try {
-                    await vapi.start(CONFIG.assistantId);
-                } catch (error) {
-                    console.error('Failed to start call:', error);
-                    updateUI('error', 'Failed to connect');
-                }
-            }
-        }
-
-        // Event listeners
-        voiceButton.addEventListener('click', toggleCall);
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', initVapi);
-    </script>
 </body>
 </html>
