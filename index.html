@@ -9,8 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/@vapi-ai/web@latest/dist/index.umd.js"></script>
-
     <style>
         :root {
             --bg-primary: #0a0a0b;
@@ -114,379 +112,316 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             margin-bottom: 2rem;
-            padding: 0.5rem 1rem;
+            padding: 1rem;
             background: var(--bg-tertiary);
-            border-radius: 100px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
+            border-radius: 16px;
+            border: 1px solid var(--border);
         }
 
-        .status-dot {
-            width: 8px; height: 8px;
+        .status-indicator {
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: var(--text-muted);
             transition: all 0.3s ease;
         }
-        .status-dot.ready { background: var(--success); box-shadow: 0 0 12px var(--success); }
-        .status-dot.connecting { background: var(--warning); animation: blink 1s ease-in-out infinite; }
-        .status-dot.active { background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: pulse-dot 1.5s ease-in-out infinite; }
-        .status-dot.error { background: var(--error); }
+        .status-indicator.active {
+            background: var(--success);
+            box-shadow: 0 0 12px var(--success);
+            animation: blink 2s infinite;
+        }
+        .status-indicator.error {
+            background: var(--error);
+            box-shadow: 0 0 12px var(--error);
+        }
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        @keyframes pulse-dot { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
 
-        .status-text { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; }
+        .status-text {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
 
-        .voice-button-container { display: flex; justify-content: center; margin-bottom: 2rem; }
-
-        .voice-button {
-            width: 140px; height: 140px;
-            border-radius: 50%;
+        .call-button {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: var(--accent);
+            color: white;
             border: none;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            position: relative;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .voice-button:hover { transform: scale(1.05); box-shadow: 0 0 60px var(--accent-glow); }
-        .voice-button:active { transform: scale(0.98); }
-        .voice-button.active { animation: glow 2s ease-in-out infinite; }
-        .voice-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 40px var(--accent-glow); }
-            50% { box-shadow: 0 0 80px var(--accent-glow), 0 0 120px rgba(139, 92, 246, 0.3); }
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
         }
 
-        .voice-button::before, .voice-button::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            border: 2px solid var(--accent);
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0;
-            pointer-events: none;
-        }
-        .voice-button.active::before { animation: ripple 2s ease-out infinite; }
-        .voice-button.active::after { animation: ripple 2s ease-out infinite 1s; }
-
-        @keyframes ripple {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        .call-button:hover {
+            background: #5855eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--accent-glow);
         }
 
-        .voice-icon { width: 48px; height: 48px; color: white; }
+        .call-button:active {
+            transform: translateY(0);
+        }
 
-        .visualizer { display: flex; align-items: center; justify-content: center; gap: 4px; height: 48px; }
-        .visualizer-bar { width: 4px; background: white; border-radius: 2px; animation: none; }
-        .voice-button.active .visualizer-bar { animation: wave 0.8s ease-in-out infinite; }
-        .visualizer-bar:nth-child(1) { height: 16px; animation-delay: 0s; }
-        .visualizer-bar:nth-child(2) { height: 24px; animation-delay: 0.1s; }
-        .visualizer-bar:nth-child(3) { height: 32px; animation-delay: 0.2s; }
-        .visualizer-bar:nth-child(4) { height: 24px; animation-delay: 0.3s; }
-        .visualizer-bar:nth-child(5) { height: 16px; animation-delay: 0.4s; }
+        .call-button.active {
+            background: var(--error);
+        }
+        .call-button.active:hover {
+            background: #dc2626;
+        }
 
-        @keyframes wave { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.8); } }
+        .call-button:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
         .transcript {
             background: var(--bg-tertiary);
-            border-radius: 16px;
-            padding: 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
             min-height: 120px;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
-        }
-        .transcript-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-        }
-        .transcript-content {
-            font-size: 0.9375rem;
+            font-size: 0.9rem;
             line-height: 1.6;
-            color: var(--text-secondary);
         }
-        .transcript-content:empty::before {
+
+        .transcript:empty::before {
             content: 'Conversation will appear here...';
             color: var(--text-muted);
             font-style: italic;
         }
 
-        .transcript-message {
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--border);
         }
-        .transcript-message:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        .transcript-role {
-            font-size: 0.75rem;
+        .message.user {
+            background: rgba(99, 102, 241, 0.1);
+            border-left-color: var(--accent);
+        }
+        .message.assistant {
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: var(--success);
+        }
+        .message.system {
+            background: rgba(161, 161, 170, 0.1);
+            border-left-color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .message-role {
             font-weight: 600;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 0.25rem;
+            opacity: 0.8;
         }
-        .transcript-role.user { color: var(--accent); }
-        .transcript-role.assistant { color: var(--success); }
-        .transcript-role.system { color: var(--text-muted); }
 
-        .footer { text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 0.875rem; }
-        .footer a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
-        .footer a:hover { color: var(--accent); }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
 
-        .transcript::-webkit-scrollbar { width: 6px; }
-        .transcript::-webkit-scrollbar-track { background: transparent; }
-        .transcript::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .assistant-info {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
 
-        .error-banner {
+        .assistant-info strong {
+            color: var(--accent);
+        }
+
+        .error-message {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid var(--error);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1.5rem;
-            text-align: center;
             color: var(--error);
-            font-size: 0.875rem;
+            font-size: 0.9rem;
         }
 
-        @media (max-width: 480px) {
-            body { padding: 1rem; }
-            .title { font-size: 2rem; }
+        @media (max-width: 640px) {
+            .container { padding: 0 1rem; }
             .card { padding: 1.5rem; }
-            .voice-button { width: 120px; height: 120px; }
+            .title { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <p class="logo" id="companyName">Your Company</p>
-            <h1 class="title" id="agentTitle">Voice AI Assistant</h1>
-            <p class="subtitle" id="agentSubtitle">Click the button below to start a conversation with your AI assistant.</p>
-        </header>
+        <div class="header">
+            <div class="logo">AI Assistant</div>
+            <h1 class="title">Voice Agent Demo</h1>
+            <p class="subtitle">Experience natural conversation with AI</p>
+        </div>
 
-        <main class="card">
-            <div class="error-banner" id="errorBanner" style="display: none;"></div>
-            
+        <div class="card">
+            <!-- Assistant Info Display -->
+            <div class="assistant-info" id="assistantInfo" style="display: none;">
+                <strong>Assistant ID:</strong> <span id="assistantIdDisplay"></span><br>
+                <strong>Name:</strong> <span id="assistantNameDisplay"></span>
+            </div>
+
+            <!-- Error Message Display -->
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+
             <div class="status">
-                <span class="status-dot" id="statusDot"></span>
-                <span class="status-text" id="statusText">Loading...</span>
+                <div class="status-indicator" id="statusIndicator"></div>
+                <div class="status-text" id="statusText">Loading...</div>
             </div>
 
-            <div class="voice-button-container">
-                <button class="voice-button" id="voiceButton" disabled>
-                    <div class="visualizer" id="visualizer" style="display: none;">
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                        <div class="visualizer-bar"></div>
-                    </div>
-                    <svg class="voice-icon" id="voiceIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                        <line x1="12" x2="12" y1="19" y2="22"/>
-                    </svg>
-                </button>
-            </div>
+            <button class="call-button" id="callButton" disabled>
+                🎤 Start Conversation
+            </button>
 
-            <div class="transcript">
-                <p class="transcript-label">Transcript</p>
-                <div class="transcript-content" id="transcript"></div>
-            </div>
-        </main>
+            <div class="transcript" id="transcript"></div>
+        </div>
 
-        <footer class="footer">
-            <p>Powered by <a href="https://vapi.ai" target="_blank">VAPI</a></p>
-        </footer>
+        <div class="footer">
+            <div>Click the button above to start talking with the AI assistant</div>
+            <div style="margin-top: 0.5rem; font-size: 0.75rem;">
+                URL Format: <code>?assistantId=your-assistant-id&name=Assistant+Name</code>
+            </div>
+        </div>
     </div>
 
+    <!-- Load Vapi SDK -->
+    <script src="https://unpkg.com/@vapi-ai/web@latest/dist/index.umd.js"></script>
+    
     <script>
-        // ============================================
-        // URL PARAMETER CONFIGURATION
-        // ============================================
-        
-        const params = new URLSearchParams(window.location.search);
-        
-        const CONFIG = {
-            publicKey: params.get('key') || '',
-            assistantId: params.get('assistant') || params.get('id') || '',
-            company: params.get('company') || 'Your Company',
-            title: params.get('title') || 'Voice AI Assistant',
-            subtitle: params.get('subtitle') || 'Click the button below to start a conversation with your AI assistant.',
-        };
-
-        // DOM Elements
-        const voiceButton = document.getElementById('voiceButton');
-        const voiceIcon = document.getElementById('voiceIcon');
-        const visualizer = document.getElementById('visualizer');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const transcript = document.getElementById('transcript');
-        const errorBanner = document.getElementById('errorBanner');
-
-        // Update page content from params
-        document.getElementById('companyName').textContent = CONFIG.company;
-        document.getElementById('agentTitle').textContent = CONFIG.title;
-        document.getElementById('agentSubtitle').textContent = CONFIG.subtitle;
-        document.title = `${CONFIG.title} - ${CONFIG.company}`;
-
-        // State
-        let isCallActive = false;
-        let vapi = null;
-
-        function showError(message) {
-            errorBanner.textContent = message;
-            errorBanner.style.display = 'block';
-            updateUI('error', message);
+        // Function to get URL parameters
+        function getUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                assistantId: urlParams.get('assistantId') || urlParams.get('id'),
+                name: urlParams.get('name') || 'AI Assistant',
+                publicKey: urlParams.get('key') || urlParams.get('publicKey') || 'YOUR_DEFAULT_PUBLIC_KEY_HERE'
+            };
         }
 
-        function updateUI(state, message = '') {
-            statusDot.className = 'status-dot ' + state;
+        // Wait for the DOM and Vapi to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get parameters from URL
+            const params = getUrlParams();
             
-            // Logic for button state
-            if (state === 'error' || state === 'connecting') {
-                voiceButton.disabled = true;
-            } else {
-                voiceButton.disabled = false;
-            }
-            
-            switch (state) {
-                case 'ready':
-                    statusText.textContent = 'Ready to talk';
-                    voiceButton.classList.remove('active');
-                    voiceIcon.style.display = 'block';
-                    visualizer.style.display = 'none';
-                    break;
-                case 'connecting':
-                    statusText.textContent = 'Connecting...';
-                    break;
-                case 'active':
-                    statusText.textContent = 'Listening...';
-                    voiceButton.classList.add('active');
-                    voiceIcon.style.display = 'none';
-                    visualizer.style.display = 'flex';
-                    break;
-                case 'error':
-                    statusText.textContent = message || 'Error';
-                    voiceButton.classList.remove('active');
-                    voiceIcon.style.display = 'block';
-                    visualizer.style.display = 'none';
-                    break;
-            }
-        }
+            // Get DOM elements
+            const callButton = document.getElementById('callButton');
+            const statusText = document.getElementById('statusText');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const transcript = document.getElementById('transcript');
+            const assistantInfo = document.getElementById('assistantInfo');
+            const assistantIdDisplay = document.getElementById('assistantIdDisplay');
+            const assistantNameDisplay = document.getElementById('assistantNameDisplay');
+            const errorMessage = document.getElementById('errorMessage');
 
-        function addToTranscript(role, text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'transcript-message';
-            
-            const roleLabel = document.createElement('p');
-            roleLabel.className = 'transcript-role ' + role;
-            roleLabel.textContent = role === 'user' ? 'You' : role === 'assistant' ? 'AI' : 'System';
-            
-            const textP = document.createElement('p');
-            textP.textContent = text;
-            
-            messageDiv.appendChild(roleLabel);
-            messageDiv.appendChild(textP);
-            transcript.appendChild(messageDiv);
-            transcript.scrollTop = transcript.scrollHeight;
-        }
-
-        // 3. SIMPLIFIED INIT LOGIC (Removed Import)
-        function initVapi() {
-            // Validate config
-            if (!CONFIG.assistantId) {
-                showError('Missing assistant ID.');
-                return;
-            }
-            
-            if (!CONFIG.publicKey) {
-                showError('Missing VAPI public key.');
+            // Validate required parameters
+            if (!params.assistantId) {
+                errorMessage.textContent = 'Error: No assistant ID provided in URL. Please add ?assistantId=your-assistant-id to the URL.';
+                errorMessage.style.display = 'block';
+                statusText.textContent = 'Missing assistant ID';
+                statusIndicator.classList.add('error');
                 return;
             }
 
+            if (!params.Key || params.publicKey === 'YOUR_DEFAULT_PUBLIC_KEY_HERE') {
+                errorMessage.textContent = 'Error: No public key provided. Please add ?key=your-public-key to the URL or update the default key in the code.';
+                errorMessage.style.display = 'block';
+                statusText.textContent = 'Missing public key';
+                statusIndicator.classList.add('error');
+                return;
+            }
+
+            // Display assistant info
+            assistantIdDisplay.textContent = params.assistantId;
+            assistantNameDisplay.textContent = params.name;
+            assistantInfo.style.display = 'block';
+
+            // Update page title with assistant name
+            document.title = `${params.name} - Voice Agent Demo`;
+            document.querySelector('.logo').textContent = params.name;
+
+            // Check if Vapi is loaded
+            if (typeof Vapi === 'undefined') {
+                console.error('Vapi is not loaded. Please check the script source.');
+                errorMessage.textContent = 'Error: Vapi library failed to load. Please refresh the page.';
+                errorMessage.style.display = 'block';
+                statusText.textContent = 'Library not loaded';
+                statusIndicator.classList.add('error');
+                return;
+            }
+
+            // Initialize Vapi with the public key from URL
+            let vapi;
             try {
-                // Initialize Vapi directly from the global variable
-                // The script in <head> provides the 'Vapi' class
-                vapi = new Vapi(CONFIG.publicKey);
-                
-                // Event listeners
-                vapi.on('call-start', () => {
-                    console.log('Call started');
-                    isCallActive = true;
-                    updateUI('active');
-                    addToTranscript('system', 'Connected');
-                });
-
-                vapi.on('call-end', () => {
-                    console.log('Call ended');
-                    isCallActive = false;
-                    updateUI('ready');
-                    addToTranscript('system', 'Call ended');
-                });
-
-                vapi.on('speech-start', () => {
-                    console.log('Assistant speaking');
-                });
-
-                vapi.on('speech-end', () => {
-                    console.log('Assistant stopped speaking');
-                });
-
-                vapi.on('message', (message) => {
-                    if (message.type === 'transcript' && message.transcriptType === 'final') {
-                        addToTranscript(message.role, message.transcript);
-                    }
-                });
-
-                vapi.on('error', (error) => {
-                    console.error('VAPI Error:', error);
-                    updateUI('error', 'Connection error');
-                    isCallActive = false;
-                });
-
-                updateUI('ready');
-                console.log('VAPI initialized successfully');
-                
+                vapi = new Vapi(params.publicKey);
             } catch (error) {
-                console.error('Failed to initialize VAPI:', error);
-                showError('Failed to load voice system: ' + error.message);
+                console.error('Error initializing Vapi:', error);
+                errorMessage.textContent = 'Error: Failed to initialize Vapi. Please check your public key.';
+                errorMessage.style.display = 'block';
+                statusText.textContent = 'Initialization failed';
+                statusIndicator.classList.add('error');
+                return;
             }
-        }
+            
+            let isCallActive = false;
+            let messages = [];
 
-        async function toggleCall() {
-            if (!vapi) return;
+            // Enable the call button
+            callButton.disabled = false;
+            statusText.textContent = 'Ready to start';
 
-            if (isCallActive) {
-                vapi.stop();
-            } else {
-                updateUI('connecting');
-                transcript.innerHTML = '';
-                
-                try {
-                    await vapi.start(CONFIG.assistantId);
-                } catch (error) {
-                    console.error('Failed to start call:', error);
-                    updateUI('error', 'Failed to connect');
-                }
+            // Helper function to add message to transcript
+            function addMessage(role, text) {
+                messages.push({ role, text, timestamp: new Date() });
+                updateTranscript();
             }
-        }
 
-        // Event listeners
-        voiceButton.addEventListener('click', toggleCall);
+            function updateTranscript() {
+                transcript.innerHTML = messages.map(msg => `
+                    <div class="message ${msg.role}">
+                        <div class="message-role">${msg.role}</div>
+                        <div>${msg.text}</div>
+                    </div>
+                `).join('');
+                transcript.scrollTop = transcript.scrollHeight;
+            }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', initVapi);
-    </script>
-</body>
-</html>
+            // Event listeners
+            vapi.on('call-start', () => {
+                console.log('Call started');
+                isCallActive = true;
+                callButton.textContent = '🛑 End Conversation';
+                callButton.classList.add('active');
+                statusText.textContent = 'Connected - Speak now!';
+                statusIndicator.classList.add('active');
+                statusIndicator.classList.remove('error');
+                addMessage('system', 'Call started - you can now speak');
+            });
+
+            vapi.on('call-end', () => {
+                console.log('Call ended');
+                isCall
