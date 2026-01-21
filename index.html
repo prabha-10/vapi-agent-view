@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     
+    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web/dist/vapi.min.js"></script>
+
     <style>
         :root {
             --bg-primary: #0a0a0b;
@@ -308,14 +310,11 @@
         </footer>
     </div>
 
-    <script type="module">
+    <script>
         // ============================================
         // URL PARAMETER CONFIGURATION
         // ============================================
-        // Use URL params to configure:
-        // ?key=YOUR_PUBLIC_KEY&assistant=ASSISTANT_ID&company=Company&title=Agent
-        // ============================================
-
+        
         const params = new URLSearchParams(window.location.search);
         
         const CONFIG = {
@@ -353,7 +352,13 @@
 
         function updateUI(state, message = '') {
             statusDot.className = 'status-dot ' + state;
-            voiceButton.disabled = state === 'error' || state === 'connecting';
+            
+            // Logic for button state
+            if (state === 'error' || state === 'connecting') {
+                voiceButton.disabled = true;
+            } else {
+                voiceButton.disabled = false;
+            }
             
             switch (state) {
                 case 'ready':
@@ -361,18 +366,15 @@
                     voiceButton.classList.remove('active');
                     voiceIcon.style.display = 'block';
                     visualizer.style.display = 'none';
-                    voiceButton.disabled = false;
                     break;
                 case 'connecting':
                     statusText.textContent = 'Connecting...';
-                    voiceButton.disabled = true;
                     break;
                 case 'active':
                     statusText.textContent = 'Listening...';
                     voiceButton.classList.add('active');
                     voiceIcon.style.display = 'none';
                     visualizer.style.display = 'flex';
-                    voiceButton.disabled = false;
                     break;
                 case 'error':
                     statusText.textContent = message || 'Error';
@@ -400,22 +402,22 @@
             transcript.scrollTop = transcript.scrollHeight;
         }
 
-        async function initVapi() {
+        // 3. SIMPLIFIED INIT LOGIC (Removed Import)
+        function initVapi() {
             // Validate config
             if (!CONFIG.assistantId) {
-                showError('Missing assistant ID. Add ?assistant=YOUR_ASSISTANT_ID to the URL.');
+                showError('Missing assistant ID.');
                 return;
             }
             
             if (!CONFIG.publicKey) {
-                showError('Missing VAPI public key. Add ?key=YOUR_PUBLIC_KEY to the URL.');
+                showError('Missing VAPI public key.');
                 return;
             }
 
             try {
-                // Dynamically import the VAPI SDK
-                const { default: Vapi } = await import('https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm');
-                
+                // Initialize Vapi directly from the global variable
+                // The script in <head> provides the 'Vapi' class
                 vapi = new Vapi(CONFIG.publicKey);
                 
                 // Event listeners
@@ -442,7 +444,6 @@
                 });
 
                 vapi.on('message', (message) => {
-                    console.log('Message:', message);
                     if (message.type === 'transcript' && message.transcriptType === 'final') {
                         addToTranscript(message.role, message.transcript);
                     }
@@ -450,7 +451,7 @@
 
                 vapi.on('error', (error) => {
                     console.error('VAPI Error:', error);
-                    updateUI('error', error.message || 'Connection error');
+                    updateUI('error', 'Connection error');
                     isCallActive = false;
                 });
 
@@ -464,16 +465,11 @@
         }
 
         async function toggleCall() {
-            if (!vapi) {
-                console.error('VAPI not initialized');
-                return;
-            }
+            if (!vapi) return;
 
             if (isCallActive) {
-                console.log('Stopping call...');
                 vapi.stop();
             } else {
-                console.log('Starting call...');
                 updateUI('connecting');
                 transcript.innerHTML = '';
                 
@@ -481,7 +477,7 @@
                     await vapi.start(CONFIG.assistantId);
                 } catch (error) {
                     console.error('Failed to start call:', error);
-                    updateUI('error', 'Failed to connect: ' + error.message);
+                    updateUI('error', 'Failed to connect');
                 }
             }
         }
@@ -490,7 +486,7 @@
         voiceButton.addEventListener('click', toggleCall);
 
         // Initialize
-        initVapi();
+        document.addEventListener('DOMContentLoaded', initVapi);
     </script>
 </body>
 </html>
